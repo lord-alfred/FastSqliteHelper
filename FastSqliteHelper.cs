@@ -135,7 +135,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Инициализация подключения к SQLite базе данных
+        /// Инициализация подключения к SQLite базе данных (дополнительные параметры connection string в виде словаря)
         /// </summary>
         /// <param name="database_path">полный путь к файлу базы данных</param>
         /// <param name="zp_project">объект project из Zenno</param>
@@ -216,7 +216,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Получение данных из таблицы по условию
+        /// Получение данных из таблицы по условию (столбцы в виде строки)
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="columns">строка столбцов, разделенных запятой</param>
@@ -247,7 +247,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Получение данных из таблицы по условию
+        /// Получение данных из таблицы по условию (столбцы в виде массива строк)
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="columns">массив строк столбцов</param>
@@ -259,7 +259,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Получение данных из таблицы по условию
+        /// Получение данных из таблицы по условию (столбцы в виде списка)
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="columns">список строк столбцов</param>
@@ -413,7 +413,7 @@ namespace FastSqliteHelperLib
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="field_name">столбец</param>
-        /// <param name="field_value">значение</param>
+        /// <param name="field_value">новое значение</param>
         /// <param name="condition">условие изменения</param>
         /// <returns>успешно ли произошло обновление</returns>
         public static bool Update(string table, string field_name, object field_value, string condition="") {
@@ -423,7 +423,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Удаление записей из таблицы по указанному условию
+        /// Удаление записей из таблицы по указанному условию в виде строки
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="condition">условие для удаления</param>
@@ -453,7 +453,7 @@ namespace FastSqliteHelperLib
         }
         
         /// <summary>
-        /// Удаление записей из таблицы по указанному условию
+        /// Удаление записей из таблицы по указанному условию в виде словаря
         /// </summary>
         /// <param name="table">таблица</param>
         /// <param name="conditions">словарь "столбец" => "значение" для формирования условия выборки</param>
