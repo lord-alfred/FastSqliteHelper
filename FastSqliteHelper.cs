@@ -30,6 +30,11 @@ namespace FastSqliteHelperLib
         [ThreadStatic] private static bool throw_on_errors;
         // показывать ли ошибку в логе ZennoPoster (в случае false - сообщение будет отображено только в ProjectMaker)
         [ThreadStatic] private static bool show_in_poster;
+        // последний отправленный запрос (включая запросы, в ходе обработки которых возникла ошибка)
+        // TODO: подумать над тем, чтоб хранить весь лог запросов (как в Medoo)
+        // TODO: возможно стоит заменять параметры на их значения (как в Medoo)
+        [ThreadStatic] private static string last_query = String.Empty;
+        
 
         // тип сообщения в логе
         public enum LogType {LogInfo, LogWarning, LogError};
@@ -46,7 +51,7 @@ namespace FastSqliteHelperLib
         /// <param name="method_name">название метода, где произошла ошибка</param>
         /// <returns>полное сообщение об ошибке</returns>
         public static string GenerateErrorMessage(string msg, string method_name) {
-            return String.Format("[FastSqliteHelper.{0}]: {1}", method_name, msg);
+            return String.Format("[FastSqliteHelper.{0}]: '{1}'. Last query: '{2}'", method_name, msg, GetLastQuery());
         }
         
         /// <summary>
@@ -178,8 +183,8 @@ namespace FastSqliteHelperLib
         /// <param name="name_and_value">название и значение параметра PRAGMA</param>
         public static void PragmaSet(string name_and_value) {
             try {
-                string sql = String.Format("PRAGMA {0};", name_and_value);
-                Query(sql);
+                last_query = String.Format("PRAGMA {0};", name_and_value);
+                Query(last_query);
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
                 string msg = GenerateErrorMessage(String.Format("Ошибка установки Pragma: {0}", exc.Message), current_method_name);
@@ -199,8 +204,9 @@ namespace FastSqliteHelperLib
         /// <returns>значение параметра</returns>
         public static object PragmaGet(string name) {
             try {
-                string sql = String.Format("PRAGMA {0};", name);
-                return QueryScalar(sql);
+                last_query = String.Format("PRAGMA {0};", name);
+                
+                return QueryScalar(last_query);
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
                 string msg = GenerateErrorMessage(String.Format("Ошибка чтения Pragma: {0}", exc.Message), current_method_name);
@@ -228,9 +234,10 @@ namespace FastSqliteHelperLib
                     condition = String.Format("and {0}", condition);
                 }
                 
+                last_query = String.Format("SELECT {0} FROM {1} WHERE 1=1 {2}", columns, table, condition);
                 SQLiteCommand cmd = connection.CreateCommand();
-                cmd.CommandText = String.Format("SELECT {0} FROM {1} WHERE 1=1 {2}", columns, table, condition);
-
+                cmd.CommandText = last_query;
+                
                 return cmd.ExecuteReader();
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
@@ -293,7 +300,8 @@ namespace FastSqliteHelperLib
                 string data_fields_string = String.Join(", ", data_fields);
                 string data_params_string = String.Join(", ", data_params);
                 
-                cmd.CommandText = String.Format("INSERT INTO {0} ({1}) VALUES({2})", table, data_fields_string, data_params_string);
+                last_query = String.Format("INSERT INTO {0} ({1}) VALUES({2})", table, data_fields_string, data_params_string);
+                cmd.CommandText = last_query;
                 
                 return cmd.ExecuteNonQuery();
             } catch (Exception exc) {
@@ -390,7 +398,8 @@ namespace FastSqliteHelperLib
                 }
                 string data_params_string = String.Join(", ", data_params);
                 
-                cmd.CommandText = String.Format("UPDATE {0} set {1} WHERE 1=1 {2}", table, data_params_string, condition);
+                last_query = String.Format("UPDATE {0} set {1} WHERE 1=1 {2}", table, data_params_string, condition);
+                cmd.CommandText = last_query;
                 int count = cmd.ExecuteNonQuery();
                 
                 return (count > 0);
@@ -434,8 +443,9 @@ namespace FastSqliteHelperLib
                     condition = String.Format("and {0}", condition);
                 }
                 
+                last_query = String.Format("DELETE FROM {0} WHERE 1=1 {1}", table, condition);
                 SQLiteCommand cmd = connection.CreateCommand();
-                cmd.CommandText = String.Format("DELETE FROM {0} WHERE 1=1 {1}", table, condition);
+                cmd.CommandText = last_query;
                 
                 return cmd.ExecuteNonQuery();
             } catch (Exception exc) {
@@ -477,8 +487,8 @@ namespace FastSqliteHelperLib
                     conditions_params.Add(field_param);
                 }
                 string condition_string = String.Join(String.Format(" {0} ", logical_operator), conditions_params);
-                
-                cmd.CommandText = String.Format("DELETE FROM {0} WHERE {1}", table, condition_string);
+                last_query = String.Format("DELETE FROM {0} WHERE {1}", table, condition_string);
+                cmd.CommandText = last_query;
                 
                 return cmd.ExecuteNonQuery();
             } catch (Exception exc) {
@@ -502,9 +512,10 @@ namespace FastSqliteHelperLib
         /// <returns>количество затронутых строк</returns>
         public static int Query(string sql) {
             try {
+                last_query = sql;
                 SQLiteCommand cmd = connection.CreateCommand();
-                cmd.CommandText = sql;
-
+                cmd.CommandText = last_query;
+                
                 return cmd.ExecuteNonQuery();
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
@@ -527,9 +538,10 @@ namespace FastSqliteHelperLib
         /// <returns>объект SQLiteDataReader с содержимым</returns>
         public static SQLiteDataReader QueryReader(string sql) {
             try {
+                last_query = sql;
                 SQLiteCommand cmd = connection.CreateCommand();
-                cmd.CommandText = sql;
-
+                cmd.CommandText = last_query;
+                
                 return cmd.ExecuteReader();
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
@@ -552,9 +564,10 @@ namespace FastSqliteHelperLib
         /// <returns>первый столбец первой строки (если вернулась хотя бы 1 строка) или null (в ином случае)</returns>
         public static object QueryScalar(string sql) {
             try {
+                last_query = sql;
                 SQLiteCommand cmd = connection.CreateCommand();
-                cmd.CommandText = sql;
-
+                cmd.CommandText = last_query;
+                
                 return cmd.ExecuteScalar();
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
@@ -568,6 +581,14 @@ namespace FastSqliteHelperLib
 
                 return null;
             }
+        }
+        
+        /// <summary>
+        /// Получить последний отправленный запрос (включая запросы, в ходе обработки которых возникла ошибка)
+        /// </summary>
+        /// <returns>последний отправленный запрос</returns>
+        public static string GetLastQuery() {
+            return last_query;
         }
     }
 }
