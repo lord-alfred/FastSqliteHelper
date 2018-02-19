@@ -35,7 +35,6 @@ namespace FastSqliteHelperLib
         // TODO: возможно стоит заменять параметры на их значения (как в Medoo)
         [ThreadStatic] private static string last_query = String.Empty;
         
-
         // тип сообщения в логе
         private enum LogType {LogInfo, LogWarning, LogError};
         
@@ -44,62 +43,6 @@ namespace FastSqliteHelperLib
         // именованный префикс для параметров, передаваемых в БД
         private const string named_param_prefix = "{0} = @param_{0}";
         
-        /// <summary>
-        /// Генерация сообщения об ошибке с указанием метода, где что-то пошло "не так"
-        /// </summary>
-        /// <param name="msg">сообщение об ошибке</param>
-        /// <param name="method_name">название метода, где произошла ошибка</param>
-        /// <returns>полное сообщение об ошибке</returns>
-        private static string GenerateErrorMessage(string msg, string method_name) {
-            return String.Format("[FastSqliteHelper.{0}]: '{1}'. Last query: '{2}'", method_name, msg, GetLastQuery());
-        }
-        
-        /// <summary>
-        /// Отправка сообщения в лог (ZP/PM или в консоль)
-        /// </summary>
-        /// <param name="msg">сообщение</param>
-        /// <param name="log_type">тип сообщения</param>
-        private static void SendToLog(string msg, LogType log_type=LogType.LogInfo) {
-            if (project != null) {
-                switch(log_type) {
-                    case LogType.LogInfo:
-                        project.SendInfoToLog(msg, show_in_poster);
-                        break;
-                    
-                    case LogType.LogWarning:
-                        project.SendWarningToLog(msg, show_in_poster);
-                        break;
-                        
-                    case LogType.LogError:
-                        project.SendErrorToLog(msg, show_in_poster);
-                        break;
-                }
-            } else {
-                ConsoleColor previous_bgcolor = Console.BackgroundColor;
-                ConsoleColor previous_fgcolor = Console.ForegroundColor;
-                switch(log_type) {
-                    case LogType.LogInfo:
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        break;
-                    
-                    case LogType.LogWarning:
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        break;
-                        
-                    case LogType.LogError:
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        break;
-                }
-                
-                Console.WriteLine(msg);
-                
-                Console.BackgroundColor = previous_bgcolor;
-                Console.ForegroundColor = previous_fgcolor;
-            }
-        }
         
         /// <summary>
         /// Инициализация подключения к SQLite базе данных
@@ -589,6 +532,63 @@ namespace FastSqliteHelperLib
         /// <returns>последний отправленный запрос</returns>
         public static string GetLastQuery() {
             return last_query;
+        }
+        
+        /// <summary>
+        /// Генерация сообщения об ошибке с указанием метода, где что-то пошло "не так"
+        /// </summary>
+        /// <param name="msg">сообщение об ошибке</param>
+        /// <param name="method_name">название метода, где произошла ошибка</param>
+        /// <returns>полное сообщение об ошибке</returns>
+        private static string GenerateErrorMessage(string msg, string method_name) {
+            return String.Format("[FastSqliteHelper.{0}]: '{1}'. Last query: '{2}'", method_name, msg, GetLastQuery());
+        }
+        
+        /// <summary>
+        /// Отправка сообщения в лог (ZP/PM или в консоль)
+        /// </summary>
+        /// <param name="msg">сообщение</param>
+        /// <param name="log_type">тип сообщения</param>
+        private static void SendToLog(string msg, LogType log_type=LogType.LogInfo) {
+            if (project != null) {
+                switch(log_type) {
+                    case LogType.LogInfo:
+                        project.SendInfoToLog(msg, show_in_poster);
+                        break;
+                    
+                    case LogType.LogWarning:
+                        project.SendWarningToLog(msg, show_in_poster);
+                        break;
+                        
+                    case LogType.LogError:
+                        project.SendErrorToLog(msg, show_in_poster);
+                        break;
+                }
+            } else {
+                ConsoleColor previous_bgcolor = Console.BackgroundColor;
+                ConsoleColor previous_fgcolor = Console.ForegroundColor;
+                switch(log_type) {
+                    case LogType.LogInfo:
+                        Console.BackgroundColor = ConsoleColor.Black;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    
+                    case LogType.LogWarning:
+                        Console.BackgroundColor = ConsoleColor.Black;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                        
+                    case LogType.LogError:
+                        Console.BackgroundColor = ConsoleColor.Black;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                }
+                
+                Console.WriteLine(msg);
+                
+                Console.BackgroundColor = previous_bgcolor;
+                Console.ForegroundColor = previous_fgcolor;
+            }
         }
     }
 }
