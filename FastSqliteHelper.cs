@@ -58,8 +58,13 @@ namespace FastSqliteHelperLib
             throw_on_errors = throw_exc_on_errors;
             show_in_poster = show_log_in_poster;
             
+            string connection_string = String.Empty;
             try {
-                string connection_string = string.Format("Data Source={0};{1}", database_path, add_to_connection_string);
+                connection_string = string.Format("Data Source={0};", database_path);
+                add_to_connection_string = add_to_connection_string.Trim().TrimEnd(new char[]{';'});
+                if (!String.IsNullOrEmpty(add_to_connection_string)) {
+                    connection_string = String.Concat(connection_string, add_to_connection_string, ";");
+                }
                 
                 if(!File.Exists(database_path)) {
                     SQLiteConnection.CreateFile(database_path);
@@ -71,6 +76,7 @@ namespace FastSqliteHelperLib
             } catch (Exception exc) {
                 string current_method_name = MethodBase.GetCurrentMethod().Name;
                 string msg = GenerateErrorMessage(String.Format("Ошибка подключения к БД: {0}", exc.Message), current_method_name);
+                msg = String.Format("{0}. Строка подключения: {1}", msg, connection_string);
                 
                 if (throw_on_errors) {
                     throw new FastSqliteHelperException(msg, exc);
