@@ -37,7 +37,7 @@ namespace FastSqliteHelperLib
         
 
         // тип сообщения в логе
-        public enum LogType {LogInfo, LogWarning, LogError};
+        private enum LogType {LogInfo, LogWarning, LogError};
         
         // префикс для параметров, передаваемых в БД
         private const string param_prefix = "@param_{0}";
@@ -50,7 +50,7 @@ namespace FastSqliteHelperLib
         /// <param name="msg">сообщение об ошибке</param>
         /// <param name="method_name">название метода, где произошла ошибка</param>
         /// <returns>полное сообщение об ошибке</returns>
-        public static string GenerateErrorMessage(string msg, string method_name) {
+        private static string GenerateErrorMessage(string msg, string method_name) {
             return String.Format("[FastSqliteHelper.{0}]: '{1}'. Last query: '{2}'", method_name, msg, GetLastQuery());
         }
         
@@ -59,7 +59,7 @@ namespace FastSqliteHelperLib
         /// </summary>
         /// <param name="msg">сообщение</param>
         /// <param name="log_type">тип сообщения</param>
-        public static void SendToLog(string msg, LogType log_type=LogType.LogInfo) {
+        private static void SendToLog(string msg, LogType log_type=LogType.LogInfo) {
             if (project != null) {
                 switch(log_type) {
                     case LogType.LogInfo:
